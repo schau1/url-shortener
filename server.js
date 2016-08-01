@@ -9,7 +9,7 @@
 
 var express = require("express");
 var path = require("path");
-var url = require("url")
+var url = require("url");
 var mongo = require("mongodb").MongoClient;
 var ObjectId = require('mongodb').ObjectID;
 var dbUrl = process.env.MONGOLAB_URI || 'mongodb://localhost:27017/url-shortener';
@@ -24,7 +24,7 @@ function encode(num){
 }
 
 function decode(str){
-    var b = new Buffer(str, 'base64')
+    var b = new Buffer(str, 'base64');
     return b.toString();
 }
 
@@ -38,7 +38,7 @@ app.get('/:url(*)', function(req,res){
         var result = url.parse(original_url);
     
         if (result.protocol == null || result.slashes == false || result.hostname.split('.').length < 2){
-            json.error = "Invalid URL format. Make sure you have the correct protocol and a valid address."
+            json.error = "Invalid URL format. Make sure you have the correct protocol and a valid address.";
             res.end(JSON.stringify(json));
         }
         else{
@@ -107,11 +107,6 @@ function processNew(reqUrl, myHostname, func){
             if (documents.length > 0) {
                 // URL is already in the database
                 json.short_url += encode(documents[0]._id.toString());
-                
-                console.log(encode(documents[0]._id.toString()));
-                console.log(documents[0]._id);    
-                console.log(documents[0]._id.toString());
-                
                 db.close();
                 func(json);
             }
@@ -136,6 +131,6 @@ function processNew(reqUrl, myHostname, func){
     });
 }
 
-console.log("Request URL Shortener Microservice starting...")
+console.log("Request URL Shortener Microservice starting...");
 app.listen(process.env.PORT || 8080);
 
