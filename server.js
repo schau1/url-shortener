@@ -12,53 +12,7 @@ var ObjectId = require('mongodb').ObjectID;
 var dbUrl = process.env.MONGOLAB_URI || 'mongodb://localhost:27017/url-shortener';
 
 var app = express();
-var base = "123456789abcdefghiklmnopqrstvxyz";
-var length = base.length;
 
-/*
-var b = new Buffer('1');
-var s = b.toString('base64');
-console.log(s + ' ' + b);
-// SmF2YVNjcmlwdA==
-var b = new Buffer('MQ', 'base64')
-var s = b.toString();
-// JavaScript
-console.log(s + ' ' + b);*/
-
-var item = encode(1564897832);
-console.log(item);
-var item2 = decode(item);
-console.log(item2);
-
-
-app.use(express.static(path.join(__dirname, "public")));
-
-
-// https://www.mathsisfun.com/base-conversion-method.html
-function encode(number){
-    var result = '';
-  
-    while (num > length)  {
-        var remainder = number % length;
-        var num = Math.floor(number/length);      
-        result = base[remainder].toString() + result;
-    }
-
-    return result;
-}
-
-function decode(number){
-    var result = 0;
-    
-    while (number){
-        var index = base.indexOf(number[0]);
-        var power = number.length - 1;
-        result += index * (Math.pow(base, power));
-        number = number.substring(1);
-    }
-    
-    return result;
-}
 
 // route all 'new/*'
 app.get('/:url(*)', function(req,res){
