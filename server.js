@@ -1,4 +1,7 @@
-/** @brief  
+/** @brief  FreeCodeCamp project
+ * User Story: I can pass a URL as a parameter and I will receive a shortened URL in the JSON response.
+ * User Story: If I pass an invalid URL that doesn't follow the valid http://www.example.com format, the JSON response will contain an error instead.
+ * User Story: When I visit that shortened URL, it will redirect me to my original link.
  * 
  * Need to run mongo first: mongod --port 27017 --dbpath=./data --nojournal
  * 
@@ -13,6 +16,17 @@ var dbUrl = process.env.MONGOLAB_URI || 'mongodb://localhost:27017/url-shortener
 
 var app = express();
 
+app.use(express.static(path.join(__dirname, "public")));
+
+function encode(num){
+    var b = new Buffer(num);
+    return b.toString('base64');
+}
+
+function decode(str){
+    var b = new Buffer(str, 'base64')
+    return b.toString();
+}
 
 // route all 'new/*'
 app.get('/:url(*)', function(req,res){
@@ -34,25 +48,25 @@ app.get('/:url(*)', function(req,res){
         }
     }
     else {
-        var short_url = req.url.substr('/'.length); 
+        var short_url = decode(req.url.substr('/'.length)); 
 
         if (short_url.length != 24){
-            json.error = "This URL is not in the database."
+            json.error = "This URL is not in the database.";
             res.end(JSON.stringify(json));            
         }
-        
-        redirect(short_url, function(err, data){
-            if (err){
-                json.error = "This URL is not in the database."
-                res.end(JSON.stringify(json));
-            }
-            
-            console.log("original_ur: " + data);
-            res.redirect(data);
-        });
+        else{
+            redirect(short_url, function(err, data){
+                if (err){
+                    json.error = "This URL is not in the database.";
+                    res.end(JSON.stringify(json));
+                }
+                
+                console.log("Redirecting to " + data);
+                res.redirect(data);
+            });
+        }
     }
 });
-
 
 
 function redirect(short_url, func){
@@ -78,7 +92,7 @@ function redirect(short_url, func){
 }
 
 function processNew(reqUrl, myHostname, func){
-    var json = {}
+    var json = {};
     json.original_url = reqUrl;
     
     json.short_url = 'https://' + myHostname + '/';
@@ -92,7 +106,12 @@ function processNew(reqUrl, myHostname, func){
             
             if (documents.length > 0) {
                 // URL is already in the database
-                json.short_url += documents[0]._id;
+                json.short_url += encode(documents[0]._id.toString());
+                
+                console.log(encode(documents[0]._id.toString()));
+                console.log(documents[0]._id);    
+                console.log(documents[0]._id.toString());
+                
                 db.close();
                 func(json);
             }
@@ -101,19 +120,21 @@ function processNew(reqUrl, myHostname, func){
                 collection.insert(json, function(err, data){
                     if (err) throw err;
                     
+                    var item = {};
+                    item.original_url = json.original_url;
+                    
                     collection.find({original_url: json.original_url}).toArray(function(err, documents){
                         if (err) throw err;  
                         
-                        json.short_url = 'https://' + myHostname + '/' + documents[0]._id;
+                        item.short_url = 'https://' + myHostname + '/' + encode(documents[0]._id.toString());
                         db.close();
-                        func(json);
+                        func(item);
                     });
                 });  
             }
         });
     });
 }
-
 
 console.log("Request URL Shortener Microservice starting...")
 app.listen(process.env.PORT || 8080);
