@@ -73,7 +73,10 @@ function redirect(short_url, func){
     console.log("short_url: ", short_url);
     
     mongo.connect(dbUrl, function(err, db){
-        if (err) throw err;
+        if (err) {
+            console.log('Unable to connect to the mongoDB server.');            
+            throw err;
+        }
         
         var collection = db.collection('url');
         collection.find({_id: ObjectId(short_url)}).toArray(function(err, documents){
@@ -98,7 +101,10 @@ function processNew(reqUrl, myHostname, func){
     json.short_url = 'https://' + myHostname + '/';
     
     mongo.connect(dbUrl, function(err, db){
-        if (err) throw err;
+        if (err) {
+            console.log('Unable to connect to the mongoDB server.');            
+            throw err;
+        }
         
         var collection = db.collection('url');
         collection.find({original_url: json.original_url}).toArray(function(err, documents){
